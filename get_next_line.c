@@ -1,58 +1,73 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   get_next_line.c                                    :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: ntenisha <ntenisha@student.42.fr>          +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2022/01/08 15:35:23 by ntenisha          #+#    #+#             */
+/*   Updated: 2022/01/08 15:35:23 by ntenisha         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #include "get_next_line.h"
 
-char *check_rem(char *rem, char **line)
+char	*ft_str_read(int fd, char *ostatok_str)
 {
-    char    *p_n;
+	char	*buff;
+	int		read_byt;
 
-    p_n = NULL;
-    if (rem)
-        if ((p_n = ft_strchr(rem, '\n')))
-        {
-            *p_n = '\0';
-            *line = ft_strdup (rem);
-            ft_strcpy(rem, ++p_n);
-        }
-        else
-        {
-            *line = ft_strdup(rem);
-            ft_strclr(rem);
-        }
-    else
-		*line = ft_strnew(1);
-	return(p_n);
+	buff = malloc((BUFFER_SIZE + 1) * sizeof(char));
+	if (!buff)
+		return (NULL);
+	read_byt = 1;
+	while (!ft_strchr(ostatok_str, '\n') && read_byt != 0)
+	{
+		read_byt = read(fd, buff, BUFFER_SIZE);
+		if (read_byt == -1)
+		{
+			free(buff);
+			return (NULL);
+		}
+		buff[read_byt] = '\0';
+		ostatok_str = ft_strjoin(ostatok_str, buff);
+	}
+	free(buff);
+	return (ostatok_str);
 }
 
-char *get_next_line(int fd, char **line)
+char	*get_next_line(int fd)
 {
-    static char     *rem;
-    char            buff[BUFFER_SIZE + 1];
-    int             bwr;
-    char            *p_n;
-    char            tmp;
+	char		*line;
+	static char	*ostatok_str;
 
-    p_n = check_rem(rem, line);
-    while (!p_n && (bwr = read  (fd, buf, BUFFER_SIZE)))
-    {
-        buf[bwr] = '\0';
-        if ((p_n = strchr(buf, '\n')))
-        {
-            *p_n = '\0';
-            p_n++;
-            rem = ft_strdup(p_n);
-        }
-        tmp = *line;
-        *line = ft_strjoin(*line, buf);
-        free(tmp);
-    }
-    return (bwr || ft_strlen(rem) || ft_strlen(*line)) ? 1 : 0;
+	if (fd < 0 || BUFFER_SIZE <= 0)
+		return (0);
+	ostatok_str = ft_str_read(fd, ostatok_str);
+	if (!ostatok_str)
+		return (NULL);
+	line = ft_get_str_n(ostatok_str);
+	ostatok_str = ft_new_ostatok_str(ostatok_str);
+	return (line);
 }
 
-int main (void)
-{
-    char    *line;
-    int     fd;
 
-    fd = open ("text.txt", O_RDONLY);
-    while (get_next_line(fd, &line))
-        printf("%s \n\n , line");
-}
+/*
+** int	main(void)
+** {
+** 	char	*line;
+** 	int		i;
+** 	int		fd1;
+** 	fd1 = open("text.txt", O_RDONLY);
+** 	i = 1;
+** 	while (i < 7)
+** 	{
+** 		line = get_next_line(fd1);
+** 		printf("line  %d %s", i, line);
+** 		free(line);
+** 		i++;
+** 	}
+** 	close(fd1);
+** 	return (0);
+** }
+*/
